@@ -1,0 +1,66 @@
+{
+    "1": {
+        "word": "abate",
+        "hints": {
+            "context": "Context: The storm suddenly abated.",
+            "dialogue": "Dialogue: 'I wish the pain would abate,' she said.",
+            "story": "Story: In Friends, Ross was hoping his bad luck would abate after a string of misfortunes."
+        },
+        "summary": "Summary: Abate means to lessen or reduce in intensity.",
+        "choices": [
+            "To increase",
+            "To reduce",
+            "To celebrate",
+            "To delay"
+        ],
+        "correct_index": 1
+    },
+    "2": {
+        "word": "benevolent",
+        "hints": {
+            "context": "Context: A benevolent smile lit up her face.",
+            "dialogue": "Dialogue: 'She's so benevolent with her time,' he noted.",
+            "story": "Story: In GOT, Jon Snow's benevolent acts made him popular among the people."
+        },
+        "summary": "Summary: Benevolent means kind and well-meaning.",
+        "choices": [
+            "Kind",
+            "Cruel",
+            "Indifferent",
+            "Generous"
+        ],
+        "correct_index": 0
+    },
+    "3": {
+        "word": "candid",
+        "hints": {
+            "context": "Context: He gave a candid answer to the reporter.",
+            "dialogue": "Dialogue: 'I'll be candid with you,' she said, 'I don't think it will work.'",
+            "story": "Story: In Friends, Joey was candid about his feelings when he confessed his love to Rachel."
+        },
+        "summary": "Summary: Candid means being honest and straightforward.",
+        "choices": [
+            "Honest",
+            "Rude",
+            "Polite",
+            "Reserved"
+        ],
+        "correct_index": 0
+    },
+    "4": {
+        "word": "astute",
+        "hints": {
+            "context": "Context: An astute observer quickly picked up on the subtle differences.",
+            "dialogue": "Dialogue: 'He's an astute businessman,' said the board member.",
+            "story": "Story: In GOT, Tyrion Lannister was known for his astute observations and political moves."
+        },
+        "summary": "Summary: Astute means having sharp judgment or being clever.",
+        "choices": [
+            "Clever",
+            "Foolish",
+            "Stubborn",
+            "Shy"
+        ],
+        "correct_index": 0
+    }
+}

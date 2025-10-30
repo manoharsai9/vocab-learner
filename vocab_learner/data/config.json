@@ -1,0 +1,17 @@
+{
+    "q_table_file": "q_table.pkl",
+    "words_file": "vocab_learner/data/words.json",
+    "hint_types": [
+        "context",
+        "dialogue",
+        "story"
+    ],
+    "alpha": 0.05,
+    "gamma": 0.8,
+    "initial_q_value": 0.1,
+    "exploration_rate": 0.2,
+    "rewards": {
+        "correct": 1.0,
+        "incorrect": -0.5
+    }
+}
