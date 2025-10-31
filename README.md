@@ -53,8 +53,9 @@ python examples/app.py --port 5001
 
 Test:
 ```bash
-curl http://127.0.0.1:5001/get_overall_best_hint
+curl http://localhost:5000/get_overall_best_hint
 ```
+Note: If deployed, use curl https://{your-app-url}/get_overall_best_hint.
 
 ## Core Functions/Endpoints
 
