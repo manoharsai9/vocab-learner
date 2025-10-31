@@ -1,3 +1,4 @@
+from importlib.resources import files
 import numpy as np
 import pickle
 from typing import Dict, List, Optional
@@ -18,7 +19,7 @@ class VocabularyModel:
         exploration_rate: Optional[float] = None,
     ):
         if config_path is None:
-            config_path = os.path.join(os.path.dirname(__file__), 'data', 'config.json')
+            config_path = str(files('vocab_learner.data') / 'config.json')
         self.config = self.load_config(config_path)
 
         # Override exploration rate if provided
@@ -26,7 +27,7 @@ class VocabularyModel:
 
         # Use config paths if not provided
         if words_path is None:
-            words_path = self.config.get('words_file', os.path.join(os.path.dirname(__file__), 'data', 'words.json'))
+            words_path = self.config.get('words_file') or str(files('vocab_learner.data') / 'words.json')
         self.words = self.load_words(words_path)
 
         if q_table_path is None:

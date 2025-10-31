@@ -1,6 +1,6 @@
 {
     "q_table_file": "q_table.pkl",
-    "words_file": "vocab_learner/data/words.json",
+    "words_file": "",
     "hint_types": [
         "context",
         "dialogue",
