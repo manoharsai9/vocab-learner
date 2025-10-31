@@ -55,7 +55,6 @@ Test:
 ```bash
 curl http://localhost:5000/get_overall_best_hint
 ```
-Note: If deployed, use curl https://{your-app-url}/get_overall_best_hint.
 
 ## Core Functions/Endpoints
 
