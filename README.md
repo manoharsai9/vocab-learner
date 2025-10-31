@@ -4,13 +4,14 @@ A modular Python package for Q-learning based adaptive vocabulary hints. Scalabl
 
 ## Installation
 
+Install core package from GitHub:
 ```bash
 pip install git+https://github.com/manoharsai9/vocab-learner.git
 ```
 
-For API:
+For API (includes Flask):
 ```bash
-pip install 'vocab_learner[api]'
+pip install "git+https://github.com/manoharsai9/vocab-learner.git#egg=vocab_learner[api]"
 ```
 
 ## Quick Start
