@@ -1,6 +1,6 @@
 # Vocab Learner
 
-A modular Python package for Q-learning based adaptive vocabulary hints. Scalable for new hint types, including multimodal (videos, PDFs, images).
+A modular Python package for Q-learning based adaptive vocabulary hints. Scalable for new hint types, including multimodal (videos, images, GIFs etc..,).
 
 ## Setup (Clone Repo)
 
@@ -15,12 +15,6 @@ Run scripts from the repo root.
 
 ## Quick Start
 
-Add to PYTHONPATH (or run from root):
-```bash
-export PYTHONPATH=$PWD
-```
-
-Then:
 ```python
 from vocab_learner import VocabularyModel
 
