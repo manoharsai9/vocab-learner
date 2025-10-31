@@ -32,8 +32,7 @@ print(best_hint)
 ## Features
 
 - Q-learning with epsilon-greedy exploration.
-- Configurable params (alpha, gamma, rewards, exploration_rate).
-- Scalable hints via `config.json` (no code changes).
+- Scalable hints and Configurable params (alpha, gamma, rewards, exploration_rate) via `config.json`.
 - Multimodal support (URLs/paths for media).
 - Flask API (`examples/app.py`).
 - Bulk hint updater (`tools/update_hints.py`).
