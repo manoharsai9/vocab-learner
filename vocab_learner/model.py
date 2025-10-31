@@ -1,106 +1,159 @@
-from vocab_learner import VocabularyModel
-import os
+import numpy as np
+import pickle
+from typing import Dict, List, Optional
 import json
+import random
+import os
 
-# Step 1: Reset everything (clean slate)
+class VocabularyModel:
+    """
+    Q-learning based model for selecting vocabulary hints.
+    Fully configurable via config.json — no hardcoding.
+    """
+    def __init__(
+        self,
+        config_path: Optional[str] = None,
+        words_path: Optional[str] = None,
+        q_table_path: Optional[str] = None,
+        exploration_rate: Optional[float] = None,
+    ):
+        if config_path is None:
+            config_path = os.path.join(os.path.dirname(__file__), 'data', 'config.json')
+        self.config = self.load_config(config_path)
 
-# Delete q_table.pkl if exists
-if os.path.exists("q_table.pkl"):
-    os.remove("q_table.pkl")
-    print("Removed old q_table.pkl for fresh start.")
+        # Override exploration rate if provided
+        self.exploration_rate = exploration_rate if exploration_rate is not None else self.config.get('exploration_rate', 0.2)
 
-# Reset config and words without loading model first
-config_path = 'vocab_learner/data/config.json'
-words_path = 'vocab_learner/data/words.json'
+        # Use config paths if not provided
+        if words_path is None:
+            words_path = self.config.get('words_file', os.path.join(os.path.dirname(__file__), 'data', 'words.json'))
+        self.words = self.load_words(words_path)
 
-# Load and reset config
-with open(config_path, 'r') as f:
-    config = json.load(f)
+        if q_table_path is None:
+            q_table_path = self.config.get('q_table_file', 'q_table.pkl')
+        self.q_table = self.load_q_table(q_table_path)
 
-if 'video' in config['hint_types']:
-    config['hint_types'].remove('video')
-    with open(config_path, 'w') as f:
-        json.dump(config, f, indent=4)
-    print("Removed 'video' from config.json")
+        self.flagged_words = set()
 
-# Load and reset words
-with open(words_path, 'r') as f:
-    words = json.load(f)
+    def load_config(self, config_path: str) -> Dict:
+        """Load configuration from JSON file."""
+        try:
+            with open(config_path, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            raise ValueError(f"Config file not found: {config_path}")
 
-for word_id in list(words.keys()):
-    if 'hints' in words[word_id] and 'video' in words[word_id]['hints']:
-        del words[word_id]['hints']['video']
-    if word_id == '100':
-        del words[word_id]
-        print("Removed test word ID 100 from words.json")
+    def load_words(self, words_path: str) -> Dict[int, Dict]:
+        """Load words data from JSON file."""
+        try:
+            with open(words_path, 'r') as f:
+                words = json.load(f)
+            return {int(k): v for k, v in words.items()}
+        except FileNotFoundError:
+            raise ValueError(f"Words file not found: {words_path}")
 
-with open(words_path, 'w') as f:
-    json.dump(words, f, indent=4)
+    def load_q_table(self, q_table_path: str) -> Dict[int, Dict[str, float]]:
+        """Load or initialize Q-table using initial_q_value from config."""
+        try:
+            with open(q_table_path, 'rb') as f:
+                return pickle.load(f)
+        except FileNotFoundError:
+            initial_q = self.config.get('initial_q_value', 0.1)
+            q_table = {
+                word_id: {
+                    hint: initial_q for hint in self.config['hint_types']
+                }
+                for word_id in self.words.keys()
+            }
+            self.save_q_table(q_table_path, q_table)
+            return q_table
 
-print("Reset complete. Starting fresh test...")
+    def save_q_table(self, q_table_path: Optional[str] = None, q_table: Optional[Dict] = None):
+        """Save Q-table to file."""
+        if q_table_path is None:
+            q_table_path = self.config['q_table_file']
+        if q_table is None:
+            q_table = self.q_table
+        with open(q_table_path, 'wb') as f:
+            pickle.dump(q_table, f)
 
-# Now load model (will create fresh q_table without 'video')
-model = VocabularyModel()
+    def get_sorted_hints(self, word_id: int) -> List[str]:
+        """Get hint types sorted by Q-value descending."""
+        if word_id not in self.q_table:
+            initial_q = self.config.get('initial_q_value', 0.1)
+            self.q_table[word_id] = {hint: initial_q for hint in self.config['hint_types']}
+            self.save_q_table()
+        q_values = self.q_table[word_id]
+        return sorted(q_values, key=q_values.get, reverse=True)
 
-# Remove test word from q_table if exists (shouldn't, but safe)
-if 100 in model.q_table:
-    del model.q_table[100]
-    model.save_q_table()
-    print("Removed test word ID 100 from q_table")
+    def get_hint_text(self, word_id: int, hint_type: str) -> str:
+        """Get hint text (or URL/path for multimodal hints) for a word and type."""
+        if hint_type not in self.config['hint_types']:
+            raise ValueError(f"Invalid hint type: {hint_type}")
+        return self.words[word_id]['hints'][hint_type]
 
-# Get best hint for word ID 1
-best_hint_type = model.get_best_hint_for_word(1)
-print(f"Best hint type for word 1: {best_hint_type}")
+    def update_q_value(self, word_id: int, hint_type: str, reward: float):
+        """Update Q-value using Q-learning formula."""
+        if word_id not in self.q_table:
+            initial_q = self.config.get('initial_q_value', 0.1)
+            self.q_table[word_id] = {hint: initial_q for hint in self.config['hint_types']}
 
-# Get hint text
-hint_text = model.get_hint_text(1, best_hint_type)
-print(f"Hint text: {hint_text}")
+        current_q = self.q_table[word_id][hint_type]
+        next_best_q = max(self.q_table[word_id].values())
+        updated_q = current_q + self.config['alpha'] * (reward + self.config['gamma'] * next_best_q - current_q)
+        self.q_table[word_id][hint_type] = updated_q
+        self.save_q_table()
 
-# Update Q-value (simulate correct)
-model.update_q_value(1, best_hint_type, reward=1)
-print("Q-value updated.")
+    def flag_word(self, word_id: int):
+        """Flag a word as needing review."""
+        self.flagged_words.add(word_id)
 
-# Check overall best hint
-overall_best = model.get_overall_best_hint()
-print(f"Overall best hint: {overall_best}")
+    def get_word_data(self, word_id: int) -> Dict:
+        """Get full data for a word."""
+        return self.words[word_id]
 
-# Add new word with UNIQUE ID 100
-new_word = {
-    "word": "test_word",
-    "hints": {hint: f"Test {hint}." for hint in model.config['hint_types']},
-    "summary": "Test summary",
-    "choices": ["A", "B"],
-    "correct_index": 0
-}
-model.add_new_word(100, new_word)
-print("New word added (ID 100).")
+    def get_overall_best_hint(self) -> str:
+        """Get the globally best hint type based on cumulative Q-values."""
+        cumulative = {hint: 0.0 for hint in self.config['hint_types']}
+        for word_q in self.q_table.values():
+            for hint, q in word_q.items():
+                cumulative[hint] += q
+        return max(cumulative, key=cumulative.get)
 
-# Add multimodal hint (video)
-with open(config_path, 'r+') as f:
-    config = json.load(f)
-    if 'video' not in config['hint_types']:
-        config['hint_types'].append('video')
-        f.seek(0)
-        json.dump(config, f, indent=4)
-        f.truncate()
-        print("Added 'video' to config.")
+    def get_best_hint_for_word(self, word_id: int) -> str:
+        """Get best hint for a word with epsilon-greedy exploration."""
+        if random.random() < self.exploration_rate:
+            return random.choice(self.config['hint_types'])
+        if word_id not in self.q_table:
+            initial_q = self.config.get('initial_q_value', 0.1)
+            self.q_table[word_id] = {hint: initial_q for hint in self.config['hint_types']}
+            self.save_q_table()
+        return max(self.q_table[word_id], key=self.q_table[word_id].get)
 
-# Use helper to add video to words.json
-os.system("python tools/update_hints.py --new_hint video --default_text 'https://example.com/video/test.mp4'")
+    def get_flagged_words(self) -> List[int]:
+        """Get list of flagged words."""
+        return list(self.flagged_words)
 
-# Reload model
-model = VocabularyModel()
+    def add_new_word(self, word_id: int, word_data: Dict):
+        """Add a new word and initialize Q-table for it."""
+        if word_id in self.words:
+            raise ValueError(f"Word ID {word_id} already exists.")
+        missing_hints = set(self.config['hint_types']) - set(word_data.get('hints', {}).keys())
+        if missing_hints:
+            raise ValueError(f"Missing hints for types: {missing_hints}")
+        self.words[word_id] = word_data
+        initial_q = self.config.get('initial_q_value', 0.1)
+        self.q_table[word_id] = {hint: initial_q for hint in self.config['hint_types']}
+        self.save_words()
+        self.save_q_table()
 
-# Get video hint for word 1
-video_hint = model.get_hint_text(1, 'video')
-print(f"Video hint for word 1: {video_hint}")
+    def save_words(self, words_path: Optional[str] = None):
+        """Save words to file."""
+        if words_path is None:
+            words_path = self.config['words_file']
+        with open(words_path, 'w') as f:
+            json.dump({str(k): v for k, v in self.words.items()}, f, indent=4)
 
-# Verify new word
-print(f"New word summary: {model.get_word_data(100)['summary']}")
-
-# Check q_table.pkl exists
-print(f"q_table.pkl created? {os.path.exists('q_table.pkl')}")
-
-# Display Q-table
-print("\nDisplaying Q-table...")
-os.system("python tools/display_q_table.py --q_table_path q_table.pkl")
+    def get_word_ids(self) -> List[int]:
+        """Get list of all word IDs."""
+        return list(self.words.keys())
