@@ -2,20 +2,25 @@
 
 A modular Python package for Q-learning based adaptive vocabulary hints. Scalable for new hint types, including multimodal (videos, PDFs, images).
 
-## Installation
+## Setup (Clone Repo)
 
-Install core package from GitHub:
+Clone the repo and install dependencies:
 ```bash
-pip install git+https://github.com/manoharsai9/vocab-learner.git
+git clone https://github.com/manoharsai9/vocab-learner.git
+cd vocab-learner
+pip install numpy flask tabulate  # Core deps + extras
 ```
 
-For API (includes Flask):
-```bash
-pip install "git+https://github.com/manoharsai9/vocab-learner.git#egg=vocab_learner[api]"
-```
+Run scripts from the repo root.
 
 ## Quick Start
 
+Add to PYTHONPATH (or run from root):
+```bash
+export PYTHONPATH=$PWD
+```
+
+Then:
 ```python
 from vocab_learner import VocabularyModel
 
@@ -37,7 +42,7 @@ print(best_hint)
 
 ## Adding Hint Types
 
-1. Update `config.json`:
+1. Update `vocab_learner/data/config.json`:
    ```json
    "hint_types": ["context", "dialogue", "story", "video"]
    ```
@@ -87,28 +92,7 @@ model.update_q_value(1, hint_type, reward=1 if correct else -0.5)
 ## Run Tests
 
 ```bash
-pip install -e .
 python -m unittest discover -s tests
-```
-
-## Project Structure
-
-```
-vocab-learner/
-├── LICENSE
-├── README.md
-├── setup.py
-├── vocab_learner/
-│   ├── __init__.py
-│   ├── model.py
-│   └── data/
-│       ├── config.json
-│       └── words.json
-├── examples/app.py
-├── tools/
-│   ├── update_hints.py
-│   └── display_q_table.py
-└── tests/test_model.py
 ```
 
 ## License
