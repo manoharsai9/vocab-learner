@@ -11,11 +11,18 @@ setup(
     extras_require={
         'api': ['flask'],
     },
-    description='A modular Python package for a Q-learning based vocabulary hint system',
+    entry_points={
+        'console_scripts': [
+            'update_hints = vocab_learner.tools.update_hints:main',
+            'display_q_table = vocab_learner.tools.display_q_table:main',
+            'vocab_learner_api = vocab_learner.examples.app:main', 
+        ],
+    },
+    description='A modular Q-learning based vocabulary hint system',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     author='Manohar Sai Jasti',
-    author_email='manoharsai.jasti@gmail.com',  # Update with your email
+    author_email='manoharsai.jasti@icloud.com',
     url='https://github.com/manoharsai9/vocab-learner',
     license='MIT',
     keywords='vocabulary learning q-learning edtech',
